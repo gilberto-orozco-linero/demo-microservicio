@@ -2,6 +2,10 @@ import httpx
 from typing import Optional, List
 import numpy as np
 import os
+from dotenv import load_dotenv
+
+# Cargar variables de entorno desde el archivo .env
+load_dotenv()
 
 # ------------------------------------------------------------------------------
 # OpenAI / Azure OpenAI: client + helpers
@@ -10,7 +14,7 @@ AZURE_OPENAI_ENDPOINT = str(os.getenv("AZURE_OPENAI_ENDPOINT"))
 AZURE_OPENAI_KEY = str(os.getenv("AZURE_OPENAI_KEY"))
 AZURE_EMBEDDINGS_ENDPOINT = str(os.getenv("AZURE_EMBEDDINGS_ENDPOINT"))
 
-# Funciones auxiliares para caché semántico
+# Funciones auxiliares para cachï¿½ semï¿½ntico
 async def get_embedding(text: str) -> Optional[List[float]]:
     """Genera embedding para el texto usando Azure OpenAI."""
     payload = {"input": text}
