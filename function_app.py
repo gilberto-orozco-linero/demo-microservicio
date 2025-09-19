@@ -1,4 +1,4 @@
 import azure.functions as func
 from demo_microservicio import app as fastapi_app
 
-app = func.AsgiFunctionApp(app=fastapi_app, http_auth_level=func.AuthLevel.ANONYMOUS, function_name="http_app_func")
+app = func.AsgiFunctionApp(app=fastapi_app, http_auth_level=func.AuthLevel.ANONYMOUS)

@@ -11,5 +11,12 @@
   "extensionBundle": {
     "id": "Microsoft.Azure.Functions.ExtensionBundle",
     "version": "[4.*, 5.0.0)"
+  },
+  "functionTimeout": "00:05:00",
+  "httpWorker": {
+    "description": {
+      "defaultExecutablePath": "python",
+      "defaultWorkerPath": "azure_functions_worker.main"
+    }
   }
 }

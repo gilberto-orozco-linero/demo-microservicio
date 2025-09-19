@@ -1,6 +1,6 @@
 ﻿import azure.functions as func
 import json
-from venv import logger
+import logging
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 import redis
@@ -8,6 +8,9 @@ from dotenv import load_dotenv
 import os
 from typing import Optional, List
 from modules import embedding_openai
+
+# Configurar logging
+logger = logging.getLogger(__name__)
 
 # Cargar variables de entorno desde el archivo .env
 load_dotenv()
@@ -61,6 +64,21 @@ def get_redis_client(db) -> Optional[redis.StrictRedis]:
     return _redis_client if _CACHE_ENABLED else None
 
 app = FastAPI(title="Microservicio de Cache con Redis")
+
+@app.get("/")
+async def health_check():
+    """Endpoint de verificación de salud"""
+    return {"status": "healthy", "service": "Microservicio de Cache con Redis"}
+
+@app.get("/health")
+async def health():
+    """Endpoint de salud detallado"""
+    return {
+        "status": "healthy",
+        "service": "Microservicio de Cache con Redis",
+        "redis_enabled": _CACHE_ENABLED,
+        "threshold": _TRESHOLD
+    }
 
 def build_cache_key(
     scope: str,
@@ -140,7 +158,7 @@ class CacheItem(BaseModel):
     thread_id: Optional[str] = None
     db_id: Optional[int]
 
-@app.route(route="cache", methods=["POST"], response_model=CacheItem)
+@app.post("/cache", response_model=CacheItem)
 async def set_cache(item: CacheItem):
     redis_client=get_redis_client(item.db_id)
     embedded_text = await embedding_openai.get_embedding(item.cache_key)
@@ -155,8 +173,8 @@ async def set_cache(item: CacheItem):
     redis_client.set(key, json.dumps(value))
     return item
 
-@app.route(route="cache", methods=["GET"], response_model=CacheItem)
-def get_cache(
+@app.get("/cache", response_model=CacheItem)
+async def get_cache(
     scope: str = Query(..., description="shared o unique"),
     role: str = Query(..., description="anon, empresa, persona, ejecutivo"),
     cache_key: str = Query(..., description="Nombre logico de la informacion cacheada"),
@@ -171,8 +189,8 @@ def get_cache(
         raise HTTPException(status_code=404, detail="Clave no encontrada en la cache")
     return CacheItem(scope=scope, role=role, cache_key=cache_key, value=value, thread_id=thread_id)
 
-@app.route(route="cache", methods=["DELETE"])
-def delete_cache(
+@app.delete("/cache")
+async def delete_cache(
     scope: str = Query(..., description="shared o unique"),
     role: str = Query(..., description="anon, empresa, persona, ejecutivo"),
     cache_key: str = Query(..., description="Nombre logico de la informacion cacheada"),
