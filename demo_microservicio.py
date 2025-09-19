@@ -140,7 +140,7 @@ class CacheItem(BaseModel):
     thread_id: Optional[str] = None
     db_id: Optional[int]
 
-@app.post("/cache", response_model=CacheItem)
+@app.route(route="cache", method=["POST"], response_model=CacheItem)
 async def set_cache(item: CacheItem):
     redis_client=get_redis_client(item.db_id)
     embedded_text = await embedding_openai.get_embedding(item.cache_key)
@@ -155,7 +155,7 @@ async def set_cache(item: CacheItem):
     redis_client.set(key, json.dumps(value))
     return item
 
-@app.get("/cache", response_model=CacheItem)
+@app.route(route="cache", method=["GET"], response_model=CacheItem)
 def get_cache(
     scope: str = Query(..., description="shared o unique"),
     role: str = Query(..., description="anon, empresa, persona, ejecutivo"),
@@ -171,7 +171,7 @@ def get_cache(
         raise HTTPException(status_code=404, detail="Clave no encontrada en la cache")
     return CacheItem(scope=scope, role=role, cache_key=cache_key, value=value, thread_id=thread_id)
 
-@app.delete("/cache")
+@app.route(route="cache", method=["DELETE"])
 def delete_cache(
     scope: str = Query(..., description="shared o unique"),
     role: str = Query(..., description="anon, empresa, persona, ejecutivo"),
